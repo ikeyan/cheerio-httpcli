@@ -1,5 +1,6 @@
 /*eslint-env mocha*/
 /*eslint no-invalid-this:0, quote-props:0, no-undefined:0, max-len:[1, 150, 2]*/
+/*jscs:disable requireDotNotation*/
 var assert = require('power-assert');
 var type   = require('type-of');
 var helper = require('./_helper');
@@ -511,6 +512,7 @@ describe('cheerio:submit', function () {
     });
   });
 
+  /*jscs:disable disallowQuotedKeysInObjects*/
   var escapes = {
     'あいうえお': {
       'utf-8': '%E3%81%82%E3%81%84%E3%81%86%E3%81%88%E3%81%8A',
@@ -568,6 +570,7 @@ describe('cheerio:submit', function () {
       'euc-jp': '%A4%DE%A4%DF%A4%E0%A4%E1%A4%E2'
     }
   };
+  /*jscs:enable disallowQuotedKeysInObjects*/
 
   helper.files('form').forEach(function (enc) {
     describe('cheerio:submit(' + enc + ')', function () {
