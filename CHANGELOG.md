@@ -4,7 +4,9 @@
 * submit系ボタンに`click()`メソッドを実装(押されたボタンの情報がフォーム送信時にパラメータとしてセットされる)
 * `checkbox`要素、`radio`要素に`tick()`/`untick()`メソッド実装
 * [TODO] `select`要素に`select()`メソッド実装
-* [TODO] `form`要素に`params()`メソッド実装
+* [TODO] `form`要素に`field()`メソッド実装
+* [TODO] `a`要素、`img`要素に`getAbsolutePath()`メソッド実装
+* [TODO] `img`要素に`save()`メソッド実装
 * Accept-Languageヘッダを指定していない場合は実行環境のロケールから言語を取得してセットするように変更
 * Acceptヘッダを指定していない場合は一般的なブラウザのAcceptヘッダをセットするように変更
 * `setBrowser()`メソッドで指定する一部のブラウザのバージョンを現在の最新版のものに変更
