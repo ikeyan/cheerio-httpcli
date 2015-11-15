@@ -37,3 +37,4 @@ client.fetch('http://www.facebook.com/')
 .finally(function () {
   console.log('終了します');
 });
+
