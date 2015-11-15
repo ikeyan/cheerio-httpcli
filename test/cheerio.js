@@ -350,7 +350,7 @@ describe('cheerio:submit', function () {
   });
 
   it('checkbox要素を含んだフォームのcheckedがフォーム送信パラメータのデフォルトになっている', function (done) {
-    var param = '?check1=1&check2=&check3=&check4%5B0%5D=';
+    var param = '?check1=1&check2=&check3=&check4%5B%5D=';
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
       $('form[name=checkbox]').submit(function (err, $, res, body) {
         assert($.documentInfo().url === helper.url('~info') + param);
@@ -648,7 +648,7 @@ describe('cheerio:tick', function () {
         $checkbox.tick();
         assert($checkbox.attr('checked') === state);
         $form.find('input[type=submit]').click(function (err, $, res, body) {
-          var param = '?check1=1&check2=&check3=&check4%5B0%5D=';
+          var param = '?check1=1&check2=&check3=&check4%5B%5D=';
           assert($.documentInfo().url === helper.url('~info') + param);
           var h = res.headers;
           assert(h['request-url'] === '/~info' + param);
@@ -670,7 +670,7 @@ describe('cheerio:tick', function () {
         $checkbox.tick();
         assert($checkbox.attr('checked') === 'checked');
         $form.submit(function (err, $, res, body) {
-          var param = '?check1=1&check2=2&check3=&check4%5B0%5D=';
+          var param = '?check1=1&check2=2&check3=&check4%5B%5D=';
           assert($.documentInfo().url === helper.url('~info') + param);
           var h = res.headers;
           assert(h['request-url'] === '/~info' + param);
@@ -694,12 +694,12 @@ describe('cheerio:tick', function () {
           var param = '?' + [
             [ 'check1', 1 ],
             [ 'check2', 2 ],
-            [ 'check3[0]', 3 ],  // TODO: 暇な時に調査
-            [ 'check3[1]', 4 ],  // nameはcheck3 x 3だがrequestモジュールから
-            [ 'check3[2]', 5 ],  // 送信する際にcheck3[]に変換されている模様
-            [ 'check4[0]', 'あいうえお' ],
-            [ 'check4[1]', 'かきくけこ' ],
-            [ 'check4[2]', 'さしすせそ' ]
+            [ 'check3', 3 ],
+            [ 'check3', 4 ],
+            [ 'check3', 5 ],
+            [ 'check4[]', 'あいうえお' ],
+            [ 'check4[]', 'かきくけこ' ],
+            [ 'check4[]', 'さしすせそ' ]
           ].map(function (v, i, a) {
             return encodeURIComponent(v[0]) + '=' + encodeURIComponent(v[1]);
           }).join('&');
@@ -877,7 +877,7 @@ describe('cheerio:untick', function () {
         $checkbox.untick();
         assert($checkbox.attr('checked') === state);
         $form.find('input[type=submit]').click(function (err, $, res, body) {
-          var param = '?check1=1&check2=&check3=&check4%5B0%5D=';
+          var param = '?check1=1&check2=&check3=&check4%5B%5D=';
           assert($.documentInfo().url === helper.url('~info') + param);
           var h = res.headers;
           assert(h['request-url'] === '/~info' + param);
@@ -899,7 +899,7 @@ describe('cheerio:untick', function () {
         $checkbox.untick();
         assert(typeof $checkbox.attr('checked') === 'undefined');
         $form.submit(function (err, $, res, body) {
-          var param = '?check1=&check2=&check3=&check4%5B0%5D=';
+          var param = '?check1=&check2=&check3=&check4%5B%5D=';
           assert($.documentInfo().url === helper.url('~info') + param);
           var h = res.headers;
           assert(h['request-url'] === '/~info' + param);
@@ -920,7 +920,7 @@ describe('cheerio:untick', function () {
           assert(typeof $(this).attr('checked') === 'undefined');
         });
         $form.submit(function (err, $, res, body) {
-          var param = '?check1=&check2=&check3=&check4%5B0%5D=';
+          var param = '?check1=&check2=&check3=&check4%5B%5D=';
           assert($.documentInfo().url === helper.url('~info') + param);
           var h = res.headers;
           assert(h['request-url'] === '/~info' + param);
