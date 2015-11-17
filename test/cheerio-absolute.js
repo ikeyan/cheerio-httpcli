@@ -5,7 +5,7 @@ var type   = require('type-of');
 var helper = require('./_helper');
 var cli    = require('../index');
 
-describe('cheerio:absolutePath', function () {
+describe('cheerio:absoluteUrl', function () {
   before(function () {
     this.server = helper.server();
   });
@@ -13,7 +13,7 @@ describe('cheerio:absolutePath', function () {
     this.server.close();
   });
 
-  describe('対応していない要素のabsolutePathはエラーとなる', function () {
+  describe('対応していない要素のabsoluteUrlはエラーとなる', function () {
     [
       'html',
       'body',
@@ -28,7 +28,7 @@ describe('cheerio:absolutePath', function () {
       it(elem, function (done) {
         cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
           try {
-            $(elem).eq(0).absolutePath();
+            $(elem).eq(0).absoluteUrl();
             assert.fail('not thrown');
           } catch (e) {
             assert(e.message === 'element is not link or img');
@@ -39,7 +39,7 @@ describe('cheerio:absolutePath', function () {
     });
   });
 
-  describe('要素数0のabsolutePathは[]を返す', function () {
+  describe('要素数0のabsoluteUrlは[]を返す', function () {
     [
       'header',
       'p',
@@ -48,7 +48,7 @@ describe('cheerio:absolutePath', function () {
     ].forEach(function (elem) {
       it(elem, function (done) {
         cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-          var actual = $(elem).eq(0).absolutePath();
+          var actual = $(elem).eq(0).absoluteUrl();
           assert(type(actual) === 'array');
           assert(actual.length === 0);
           done();
@@ -57,48 +57,48 @@ describe('cheerio:absolutePath', function () {
     });
   });
 
-  it('相対パスリンクのabsolutePathは現在のページを基準にした絶対URLを返す', function (done) {
+  it('相対パスリンクのabsoluteUrlは現在のページを基準にした絶対URLを返す', function (done) {
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-      var actual = $('.rel').eq(0).absolutePath();
+      var actual = $('.rel').eq(0).absoluteUrl();
       assert(actual === helper.url('auto', 'euc-jp'));
       done();
     });
   });
 
-  it('外部URLリンクのabsolutePathはそのURLをそのまま返す', function (done) {
+  it('外部URLリンクのabsoluteUrlはそのURLをそのまま返す', function (done) {
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-      var actual = $('.external').absolutePath();
+      var actual = $('.external').absoluteUrl();
       assert(actual === 'http://www.yahoo.co.jp/');
       done();
     });
   });
 
-  it('ルートからの絶対パスリンクのabsolutePathはドキュメントルートを基準にした絶対URLを返す', function (done) {
+  it('ルートからの絶対パスリンクのabsoluteUrlはドキュメントルートを基準にした絶対URLを返す', function (done) {
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-      var actual = $('.root').absolutePath();
+      var actual = $('.root').absoluteUrl();
       assert(actual === helper.url('~info') + '?hoge=fuga&piyo=');
       done();
     });
   });
 
-  it('javascriptリンクのabsolutePathはそのまま返す(javascript:...)', function (done) {
+  it('javascriptリンクのabsoluteUrlはそのまま返す(javascript:...)', function (done) {
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-      var actual = $('.js').absolutePath();
+      var actual = $('.js').absoluteUrl();
       assert(actual === 'javascript:history.back();');
       done();
     });
   });
 
-  it('ハッシュリンクのabsolutePathは現在のページのURLの末尾にハッシュを追加して返す', function (done) {
+  it('ハッシュリンクのabsoluteUrlは現在のページのURLの末尾にハッシュを追加して返す', function (done) {
     var url = helper.url('form', 'utf-8');
     cli.fetch(url, function (err, $, res, body) {
-      var actual = $('.hash').absolutePath();
+      var actual = $('.hash').absoluteUrl();
       assert(actual === url + '#hoge');
       done();
     });
   });
 
-  it('複数のa要素を指定してabsolutePathすると絶対URLの配列を返す', function (done) {
+  it('複数のa要素を指定してabsoluteUrlすると絶対URLの配列を返す', function (done) {
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
       var expcted = [
         helper.url('auto', 'euc-jp'),
@@ -112,41 +112,41 @@ describe('cheerio:absolutePath', function () {
         helper.url('form', 'utf-8') + '#hoge',
         helper.url('form', 'xxx')
       ];
-      var actual = $('a').absolutePath();
+      var actual = $('a').absoluteUrl();
       assert.deepEqual(actual, expcted);
       done();
     });
   });
 
-  it('hrefが指定されたいないa要素を指定してabsolutePathするとundefinedを返す', function (done) {
+  it('hrefが指定されたいないa要素を指定してabsoluteUrlするとundefinedを返す', function (done) {
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-      var actual = $('.undef').absolutePath();
+      var actual = $('.undef').absoluteUrl();
       assert(type(actual) === 'undefined');
       done();
     });
   });
 
-  it('hrefが空のa要素を指定してabsolutePathすると空文字を返す', function (done) {
+  it('hrefが空のa要素を指定してabsoluteUrlすると空文字を返す', function (done) {
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-      var actual = $('.empty').absolutePath();
+      var actual = $('.empty').absoluteUrl();
       assert(actual === '');
       done();
     });
   });
 
   [ 0, 1, 2 ].forEach(function (idx) {
-    it('生のa要素のabsolutePathでも絶対URLを取得できる(' + idx + '番目)', function (done) {
+    it('生のa要素のabsoluteUrlでも絶対URLを取得できる(' + idx + '番目)', function (done) {
       cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-        var actual = $($('.rel')[idx]).absolutePath();
+        var actual = $($('.rel')[idx]).absoluteUrl();
         assert(actual === helper.url('auto', 'euc-jp'));
         done();
       });
     });
   });
 
-  it('無から作成したa要素のabsolutePathでも絶対URLを取得できる(jQuery形式)', function (done) {
+  it('無から作成したa要素のabsoluteUrlでも絶対URLを取得できる(jQuery形式)', function (done) {
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-      var actual = $('<a/>').attr('href', '../auto/shift_jis.html').absolutePath();
+      var actual = $('<a/>').attr('href', '../auto/shift_jis.html').absoluteUrl();
       assert(actual === helper.url('auto', 'shift_jis'));
       done();
     });
@@ -154,7 +154,7 @@ describe('cheerio:absolutePath', function () {
 
   it('無から作成したa要素をclickしてもリンク先を取得できる(HTML形式)', function (done) {
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-      var actual = $('<a href="/top.php?login=1">link</a>').absolutePath();
+      var actual = $('<a href="/top.php?login=1">link</a>').absoluteUrl();
       assert(actual === helper.url('top.php?login=1'));
       done();
     });
@@ -164,7 +164,7 @@ describe('cheerio:absolutePath', function () {
     describe('absolute: false => 絶対URLリンクは除外される', function () {
       it('単一要素 => undefined', function (done) {
         cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-          var actual = $('.external').absolutePath({ absolute: false });
+          var actual = $('.external').absoluteUrl({ absolute: false });
           assert(type(actual) === 'undefined');
           done();
         });
@@ -183,7 +183,7 @@ describe('cheerio:absolutePath', function () {
             helper.url('form', 'utf-8') + '#hoge',
             helper.url('form', 'xxx')
           ];
-          var actual = $('a').absolutePath({ absolute: false });
+          var actual = $('a').absoluteUrl({ absolute: false });
           assert.deepEqual(actual, expcted);
           done();
         });
@@ -193,7 +193,7 @@ describe('cheerio:absolutePath', function () {
     describe('relative: false => 相対URLリンクは除外される', function () {
       it('単一要素 => undefined', function (done) {
         cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-          var actual = $('.rel').eq(0).absolutePath({ relative: false });
+          var actual = $('.rel').eq(0).absoluteUrl({ relative: false });
           assert(type(actual) === 'undefined');
           done();
         });
@@ -207,7 +207,7 @@ describe('cheerio:absolutePath', function () {
             'http://www.yahoo.co.jp/',
             'javascript:history.back();'
           ];
-          var actual = $('a').absolutePath({ relative: false });
+          var actual = $('a').absoluteUrl({ relative: false });
           assert.deepEqual(actual, expcted);
           done();
         });
@@ -217,7 +217,7 @@ describe('cheerio:absolutePath', function () {
     describe('invalid: false => URLでないものは除外される', function () {
       it('単一要素(hrefなし) => undefined', function (done) {
         cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-          var actual = $('.undef').absolutePath({ invalid: false });
+          var actual = $('.undef').absoluteUrl({ invalid: false });
           assert(type(actual) === 'undefined');
           done();
         });
@@ -225,7 +225,7 @@ describe('cheerio:absolutePath', function () {
 
       it('単一要素(空) => undefined', function (done) {
         cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-          var actual = $('.empty').absolutePath({ invalid: false });
+          var actual = $('.empty').absoluteUrl({ invalid: false });
           assert(type(actual) === 'undefined');
           done();
         });
@@ -233,7 +233,7 @@ describe('cheerio:absolutePath', function () {
 
       it('単一要素(javascript) => undefined', function (done) {
         cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-          var actual = $('.js').absolutePath({ invalid: false });
+          var actual = $('.js').absoluteUrl({ invalid: false });
           assert(type(actual) === 'undefined');
           done();
         });
@@ -250,7 +250,7 @@ describe('cheerio:absolutePath', function () {
             helper.url('form', 'utf-8') + '#hoge',
             helper.url('form', 'xxx')
           ];
-          var actual = $('a').absolutePath({ invalid: false });
+          var actual = $('a').absoluteUrl({ invalid: false });
           assert.deepEqual(actual, expcted);
           done();
         });
@@ -265,7 +265,7 @@ describe('cheerio:absolutePath', function () {
             '',
             'javascript:history.back();'
           ];
-          var actual = $('a').absolutePath({
+          var actual = $('a').absoluteUrl({
             absolute: false,
             relative: false
           });
@@ -284,7 +284,7 @@ describe('cheerio:absolutePath', function () {
             helper.url('form', 'utf-8') + '#hoge',
             helper.url('form', 'xxx')
           ];
-          var actual = $('a').absolutePath({
+          var actual = $('a').absoluteUrl({
             absolute: false,
             invalid: false
           });
@@ -298,7 +298,7 @@ describe('cheerio:absolutePath', function () {
           var expcted = [
             'http://www.yahoo.co.jp/'
           ];
-          var actual = $('a').absolutePath({
+          var actual = $('a').absoluteUrl({
             relative: false,
             invalid: false
           });
@@ -318,7 +318,7 @@ describe('cheerio:absolutePath', function () {
     it('単一要素 => srcに指定したURLを絶対URLにして返す', function (done) {
       cli.fetch(helper.url('img', 'index'), function (err, $, res, body) {
         var expected = helper.url('img', 'img/cat').replace(/\.html/, '.png');
-        var actual = $('.rel').absolutePath();
+        var actual = $('.rel').absoluteUrl();
         assert(actual === expected);
         done();
       });
@@ -338,7 +338,7 @@ describe('cheerio:absolutePath', function () {
           base + '/not-found.gif',
           'data:image/jpg;base64,' + _this.base64img
         ];
-        var actual = $('img').absolutePath();
+        var actual = $('img').absoluteUrl();
         assert.deepEqual(actual, expected);
         done();
       });
@@ -347,7 +347,7 @@ describe('cheerio:absolutePath', function () {
     it('base64はURLでないものとして扱われる', function (done) {
       var _this = this;
       cli.fetch(helper.url('img', 'index'), function (err, $, res, body) {
-        var actual = $('.base64').absolutePath({ invalid: false });
+        var actual = $('.base64').absoluteUrl({ invalid: false });
         assert(type(actual) === 'undefined');
         done();
       });
@@ -376,7 +376,7 @@ describe('cheerio:absolutePath', function () {
           'http://www.google.co.jp/',
           helper.url('~info?foo=1&bar=2&baz=3')
         ];
-        var actual = $('img, a').absolutePath();
+        var actual = $('img, a').absoluteUrl();
         assert.deepEqual(actual, expected);
         done();
       });
@@ -390,7 +390,7 @@ describe('cheerio:absolutePath', function () {
           'http://www.yahoo.co.jp/favicon.ico',
           'http://www.google.co.jp/'
         ];
-        var actual = $('img, a').absolutePath({ relative: false, invalid: false });
+        var actual = $('img, a').absoluteUrl({ relative: false, invalid: false });
         assert.deepEqual(actual, expected);
         done();
       });
