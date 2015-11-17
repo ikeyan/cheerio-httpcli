@@ -1,12 +1,10 @@
 /*eslint-env mocha*/
-/*eslint no-invalid-this:0, quote-props:0, no-undefined:0, max-len:[1, 150, 2]*/
-/*jscs:disable requireDotNotation*/
+/*eslint no-invalid-this:0, no-undefined:0*/
 var assert = require('power-assert');
 var type   = require('type-of');
 var helper = require('./_helper');
 var cli    = require('../index');
 
-//TODO: img, a/img, absolutePath(true)
 describe('cheerio:absolutePath', function () {
   before(function () {
     this.server = helper.server();
@@ -107,6 +105,7 @@ describe('cheerio:absolutePath', function () {
         helper.url('auto', 'euc-jp'),
         helper.url('auto', 'euc-jp'),
         undefined,
+        '',
         helper.url('~info?hoge=fuga&piyo='),
         'http://www.yahoo.co.jp/',
         'javascript:history.back();',
@@ -121,8 +120,16 @@ describe('cheerio:absolutePath', function () {
 
   it('hrefが指定されたいないa要素を指定してabsolutePathするとundefinedを返す', function (done) {
     cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
-      var actual = $('.empty').absolutePath();
+      var actual = $('.undef').absolutePath();
       assert(type(actual) === 'undefined');
+      done();
+    });
+  });
+
+  it('hrefが空のa要素を指定してabsolutePathすると空文字を返す', function (done) {
+    cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+      var actual = $('.empty').absolutePath();
+      assert(actual === '');
       done();
     });
   });
@@ -150,6 +157,243 @@ describe('cheerio:absolutePath', function () {
       var actual = $('<a href="/top.php?login=1">link</a>').absolutePath();
       assert(actual === helper.url('top.php?login=1'));
       done();
+    });
+  });
+
+  describe('filterオプション', function () {
+    describe('absolute: false => 絶対URLリンクは除外される', function () {
+      it('単一要素 => undefined', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var actual = $('.external').absolutePath({ absolute: false });
+          assert(type(actual) === 'undefined');
+          done();
+        });
+      });
+
+      it('複数要素 => 絶対URLリンクを除外したURL配列を返す', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var expcted = [
+            helper.url('auto', 'euc-jp'),
+            helper.url('auto', 'euc-jp'),
+            helper.url('auto', 'euc-jp'),
+            undefined,
+            '',
+            helper.url('~info?hoge=fuga&piyo='),
+            'javascript:history.back();',
+            helper.url('form', 'utf-8') + '#hoge',
+            helper.url('form', 'xxx')
+          ];
+          var actual = $('a').absolutePath({ absolute: false });
+          assert.deepEqual(actual, expcted);
+          done();
+        });
+      });
+    });
+
+    describe('relative: false => 相対URLリンクは除外される', function () {
+      it('単一要素 => undefined', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var actual = $('.rel').eq(0).absolutePath({ relative: false });
+          assert(type(actual) === 'undefined');
+          done();
+        });
+      });
+
+      it('複数要素 => 相対URLリンクを除外したURL配列を返す', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var expcted = [
+            undefined,
+            '',
+            'http://www.yahoo.co.jp/',
+            'javascript:history.back();'
+          ];
+          var actual = $('a').absolutePath({ relative: false });
+          assert.deepEqual(actual, expcted);
+          done();
+        });
+      });
+    });
+
+    describe('invalid: false => URLでないものは除外される', function () {
+      it('単一要素(hrefなし) => undefined', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var actual = $('.undef').absolutePath({ invalid: false });
+          assert(type(actual) === 'undefined');
+          done();
+        });
+      });
+
+      it('単一要素(空) => undefined', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var actual = $('.empty').absolutePath({ invalid: false });
+          assert(type(actual) === 'undefined');
+          done();
+        });
+      });
+
+      it('単一要素(javascript) => undefined', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var actual = $('.js').absolutePath({ invalid: false });
+          assert(type(actual) === 'undefined');
+          done();
+        });
+      });
+
+      it('複数要素 => URLでないものを除外したURL配列を返す', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var expcted = [
+            helper.url('auto', 'euc-jp'),
+            helper.url('auto', 'euc-jp'),
+            helper.url('auto', 'euc-jp'),
+            helper.url('~info?hoge=fuga&piyo='),
+            'http://www.yahoo.co.jp/',
+            helper.url('form', 'utf-8') + '#hoge',
+            helper.url('form', 'xxx')
+          ];
+          var actual = $('a').absolutePath({ invalid: false });
+          assert.deepEqual(actual, expcted);
+          done();
+        });
+      });
+    });
+
+    describe('複合 => それぞれのfilterが組み合わせる', function () {
+      it('absolute:false & relative: false => URLでないもののみ返す', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var expcted = [
+            undefined,
+            '',
+            'javascript:history.back();'
+          ];
+          var actual = $('a').absolutePath({
+            absolute: false,
+            relative: false
+          });
+          assert.deepEqual(actual, expcted);
+          done();
+        });
+      });
+
+      it('absolute:false & invalid: false => 相対URLのみ返す', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var expcted = [
+            helper.url('auto', 'euc-jp'),
+            helper.url('auto', 'euc-jp'),
+            helper.url('auto', 'euc-jp'),
+            helper.url('~info?hoge=fuga&piyo='),
+            helper.url('form', 'utf-8') + '#hoge',
+            helper.url('form', 'xxx')
+          ];
+          var actual = $('a').absolutePath({
+            absolute: false,
+            invalid: false
+          });
+          assert.deepEqual(actual, expcted);
+          done();
+        });
+      });
+
+      it('relative:false & invalid: false => 絶対URLのみ返す', function (done) {
+        cli.fetch(helper.url('form', 'utf-8'), function (err, $, res, body) {
+          var expcted = [
+            'http://www.yahoo.co.jp/'
+          ];
+          var actual = $('a').absolutePath({
+            relative: false,
+            invalid: false
+          });
+          assert.deepEqual(actual, expcted);
+          done();
+        });
+      });
+    });
+  });
+
+  describe('img要素', function () {
+    before(function () {
+      this.base64img = helper.toBase64('fixtures/img/img/sports.jpg');
+    });
+    after(function () { });
+
+    it('単一要素 => srcに指定したURLを絶対URLにして返す', function (done) {
+      cli.fetch(helper.url('img', 'index'), function (err, $, res, body) {
+        var expected = helper.url('img', 'img/cat').replace(/\.html/, '.png');
+        var actual = $('.rel').absolutePath();
+        assert(actual === expected);
+        done();
+      });
+    });
+
+    it('複数要素 => 各要素のsrcのURLを絶対URLにした配列を返す', function (done) {
+      var _this = this;
+      cli.fetch(helper.url('img', 'index'), function (err, $, res, body) {
+        var base = helper.url('img', '').replace(/\.html/, '');
+        var expected = [
+          base + '/img/cat.png',
+          undefined,
+          '',
+          base + '/img/food.jpg?hoge=fuga&piyo=',
+          'http://www.yahoo.co.jp/favicon.ico',
+          'javascript:getPicture();',
+          base + '/not-found.gif',
+          'data:image/jpg;base64,' + _this.base64img
+        ];
+        var actual = $('img').absolutePath();
+        assert.deepEqual(actual, expected);
+        done();
+      });
+    });
+
+    it('base64はURLでないものとして扱われる', function (done) {
+      var _this = this;
+      cli.fetch(helper.url('img', 'index'), function (err, $, res, body) {
+        var actual = $('.base64').absolutePath({ invalid: false });
+        assert(type(actual) === 'undefined');
+        done();
+      });
+    });
+  });
+
+  describe('a要素とimg要素の複合', function () {
+    before(function () {
+      this.base64img = helper.toBase64('fixtures/img/img/sports.jpg');
+    });
+    after(function () { });
+
+    it('各要素のhref/srcのURLを絶対URLにした配列を返す', function (done) {
+      var _this = this;
+      cli.fetch(helper.url('img', 'index'), function (err, $, res, body) {
+        var base = helper.url('img', '').replace(/\.html/, '');
+        var expected = [
+          base + '/img/cat.png',
+          undefined,
+          '',
+          base + '/img/food.jpg?hoge=fuga&piyo=',
+          'http://www.yahoo.co.jp/favicon.ico',
+          'javascript:getPicture();',
+          base + '/not-found.gif',
+          'data:image/jpg;base64,' + _this.base64img,
+          'http://www.google.co.jp/',
+          helper.url('~info?foo=1&bar=2&baz=3')
+        ];
+        var actual = $('img, a').absolutePath();
+        assert.deepEqual(actual, expected);
+        done();
+      });
+    });
+
+    it('filterオプション(外部リンクのみ取得)', function (done) {
+      var _this = this;
+      cli.fetch(helper.url('img', 'index'), function (err, $, res, body) {
+        var base = helper.url('img', '').replace(/\.html/, '');
+        var expected = [
+          'http://www.yahoo.co.jp/favicon.ico',
+          'http://www.google.co.jp/'
+        ];
+        var actual = $('img, a').absolutePath({ relative: false, invalid: false });
+        assert.deepEqual(actual, expected);
+        done();
+      });
     });
   });
 });

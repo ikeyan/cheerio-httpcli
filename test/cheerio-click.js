@@ -1,6 +1,5 @@
 /*eslint-env mocha*/
-/*eslint no-invalid-this:0, quote-props:0, no-undefined:0, max-len:[1, 150, 2]*/
-/*jscs:disable requireDotNotation*/
+/*eslint no-invalid-this:0, max-len:[1, 150, 2]*/
 var assert = require('power-assert');
 var type   = require('type-of');
 var helper = require('./_helper');
